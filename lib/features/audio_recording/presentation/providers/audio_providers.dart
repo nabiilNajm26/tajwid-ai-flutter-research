@@ -10,7 +10,9 @@ import '../../domain/usecases/stop_recording.dart';
 part 'audio_providers.g.dart';
 
 /// Provider for AudioRecorderDataSource (singleton).
-@riverpod
+///
+/// IMPORTANT: keepAlive to maintain state during recording session
+@Riverpod(keepAlive: true)
 AudioRecorderDataSource audioRecorderDataSource(Ref ref) {
   final dataSource = AudioRecorderDataSourceImpl();
 

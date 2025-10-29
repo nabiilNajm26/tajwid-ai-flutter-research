@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../../../core/utils/logger.dart';
@@ -40,9 +42,14 @@ class AudioRecordingState {
 @riverpod
 class AudioRecordingController extends _$AudioRecordingController {
   final AppLogger _logger = AppLogger();
+  Timer? _durationTimer;
+  DateTime? _recordingStartTime;
 
   @override
   AudioRecordingState build() {
+    ref.onDispose(() {
+      _durationTimer?.cancel();
+    });
     return const AudioRecordingState();
   }
 
@@ -71,9 +78,22 @@ class AudioRecordingController extends _$AudioRecordingController {
       },
       (_) {
         _logger.info('Recording started successfully');
-        // State already set to recording above
+        // Start timer to update duration every 100ms
+        _recordingStartTime = DateTime.now();
+        _startDurationTimer();
       },
     );
+  }
+
+  /// Start timer to update recording duration
+  void _startDurationTimer() {
+    _durationTimer?.cancel();
+    _durationTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      if (_recordingStartTime != null && state.status.isRecording) {
+        final duration = DateTime.now().difference(_recordingStartTime!);
+        state = state.copyWith(durationMs: duration.inMilliseconds);
+      }
+    });
   }
 
   /// Stop recording and get audio data.
@@ -82,6 +102,11 @@ class AudioRecordingController extends _$AudioRecordingController {
       _logger.warning('Cannot stop recording in current state: ${state.status}');
       return;
     }
+
+    // Stop duration timer
+    _durationTimer?.cancel();
+    _durationTimer = null;
+    _recordingStartTime = null;
 
     final stopRecordingUseCase = ref.read(stopRecordingProvider);
     final result = await stopRecordingUseCase();
@@ -107,6 +132,9 @@ class AudioRecordingController extends _$AudioRecordingController {
 
   /// Reset to idle state.
   void reset() {
+    _durationTimer?.cancel();
+    _durationTimer = null;
+    _recordingStartTime = null;
     state = const AudioRecordingState();
   }
 

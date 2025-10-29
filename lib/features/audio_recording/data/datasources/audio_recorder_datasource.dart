@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -51,18 +52,24 @@ class AudioRecorderDataSourceImpl implements AudioRecorderDataSource {
 
   bool _isInitialized = false;
   String? _currentFilePath;
+  DateTime? _recordingStartTime;
 
   // Audio configuration (aligned with AppConstants)
   static const int _sampleRate = 16000; // 16kHz
   static const int _numChannels = 1; // Mono
-  static const Codec _codec = Codec.pcm16WAV; // WAV format
+  static const Codec _codec = Codec.aacADTS; // AAC format (better emulator support)
 
   /// Initialize the recorder (lazy initialization).
   Future<void> _ensureInitialized() async {
     if (_isInitialized) return;
 
     try {
+      // Open recorder with audio focus
       await _recorder.openRecorder();
+
+      // Set audio session category (important for Android)
+      await _recorder.setSubscriptionDuration(const Duration(milliseconds: 100));
+
       _isInitialized = true;
       _logger.info('AudioRecorder initialized successfully');
     } catch (e) {
@@ -76,21 +83,40 @@ class AudioRecorderDataSourceImpl implements AudioRecorderDataSource {
   @override
   Future<String> startRecording() async {
     try {
+      // Web is not supported
+      if (kIsWeb) {
+        throw const AudioRecordingException(
+          'Audio recording is not supported on web. Please use Android or iOS.',
+        );
+      }
+
       await _ensureInitialized();
 
       // Check permission first
-      if (!await hasPermission()) {
-        throw const AudioRecordingException(
-          'Microphone permission not granted',
-        );
+      final hasPermission = await this.hasPermission();
+      _logger.info('Microphone permission status: $hasPermission');
+
+      if (!hasPermission) {
+        // Try to request permission
+        final granted = await requestPermission();
+        _logger.info('Permission request result: $granted');
+
+        if (!granted) {
+          throw const AudioRecordingException(
+            'Microphone permission not granted. Please enable in Settings.',
+          );
+        }
       }
 
       // Generate unique file path
       final directory = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final filePath = '${directory.path}/tajwid_audio_$timestamp.wav';
+      final filePath = '${directory.path}/tajwid_audio_$timestamp.aac'; // AAC extension
 
       // Start recording
+      _logger.info('Starting recorder with: codec=$_codec, sampleRate=$_sampleRate, channels=$_numChannels');
+      _logger.info('Output path: $filePath');
+
       await _recorder.startRecorder(
         toFile: filePath,
         codec: _codec,
@@ -98,8 +124,19 @@ class AudioRecorderDataSourceImpl implements AudioRecorderDataSource {
         numChannels: _numChannels,
       );
 
+      // Verify recorder is actually running
+      final isRecording = _recorder.isRecording;
+      _logger.info('Recorder isRecording: $isRecording');
+
+      if (!isRecording) {
+        throw const AudioRecordingException(
+          'Failed to start recorder. Recorder reports not recording.',
+        );
+      }
+
       _currentFilePath = filePath;
-      _logger.info('Recording started: $filePath');
+      _recordingStartTime = DateTime.now();
+      _logger.info('✅ Recording started successfully: $filePath');
 
       return filePath;
     } catch (e) {
@@ -116,9 +153,18 @@ class AudioRecorderDataSourceImpl implements AudioRecorderDataSource {
         throw const AudioRecordingException('No active recording to stop');
       }
 
+      // Calculate actual recording duration
+      final recordingEndTime = DateTime.now();
+      final durationMs = _recordingStartTime != null
+          ? recordingEndTime.difference(_recordingStartTime!).inMilliseconds
+          : 0;
+
       // Stop recording
       await _recorder.stopRecorder();
-      _logger.info('Recording stopped: $_currentFilePath');
+      _logger.info('Recording stopped: $_currentFilePath (${durationMs}ms)');
+
+      // Wait a bit for file to be written
+      await Future.delayed(const Duration(milliseconds: 200));
 
       // Get file metadata
       final file = File(_currentFilePath!);
@@ -129,12 +175,13 @@ class AudioRecorderDataSourceImpl implements AudioRecorderDataSource {
       final fileStat = await file.stat();
       final fileSizeBytes = fileStat.size;
 
-      // Calculate duration from file size (WAV formula)
-      // Size = (sampleRate * numChannels * bitsPerSample * durationSec) / 8
-      // Duration = (Size * 8) / (sampleRate * numChannels * bitsPerSample)
-      const bitsPerSample = 16; // PCM16
-      final durationMs = (fileSizeBytes * 8 * 1000) ~/
-          (_sampleRate * _numChannels * bitsPerSample);
+      _logger.info('Audio file size: $fileSizeBytes bytes');
+
+      // Warn if file is suspiciously small (only header, no data)
+      if (fileSizeBytes < 1000) {
+        _logger.warning('Audio file very small ($fileSizeBytes bytes). '
+            'This might indicate recording failed or no audio data captured.');
+      }
 
       final audioData = AudioData(
         filePath: _currentFilePath!,
@@ -145,6 +192,7 @@ class AudioRecorderDataSourceImpl implements AudioRecorderDataSource {
       );
 
       _currentFilePath = null;
+      _recordingStartTime = null;
       return audioData;
     } catch (e) {
       _logger.error('Failed to stop recording', error: e);

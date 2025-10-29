@@ -7,14 +7,16 @@ part of 'audio_providers.dart';
 // **************************************************************************
 
 String _$audioRecorderDataSourceHash() =>
-    r'90ce0a8bacea8fd16a819f7702395d01c18e00e6';
+    r'1c78550d7c31a3d3ba1ec3cdbfb7f1dc82aa6c5a';
 
 /// Provider for AudioRecorderDataSource (singleton).
+///
+/// IMPORTANT: keepAlive to maintain state during recording session
 ///
 /// Copied from [audioRecorderDataSource].
 @ProviderFor(audioRecorderDataSource)
 final audioRecorderDataSourceProvider =
-    AutoDisposeProvider<AudioRecorderDataSource>.internal(
+    Provider<AudioRecorderDataSource>.internal(
       audioRecorderDataSource,
       name: r'audioRecorderDataSourceProvider',
       debugGetCreateSourceHash:
@@ -27,8 +29,7 @@ final audioRecorderDataSourceProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef AudioRecorderDataSourceRef =
-    AutoDisposeProviderRef<AudioRecorderDataSource>;
+typedef AudioRecorderDataSourceRef = ProviderRef<AudioRecorderDataSource>;
 String _$audioRepositoryHash() => r'17567abd44f0529876fb9767dcb535e0b5c7421d';
 
 /// Provider for AudioRepository.
