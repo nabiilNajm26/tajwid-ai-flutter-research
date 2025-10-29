@@ -23,3 +23,15 @@ class InferenceFailure extends Failure {
 class StorageFailure extends Failure {
   const StorageFailure(super.message);
 }
+
+class AudioFailure extends Failure {
+  const AudioFailure(super.message);
+}
+
+class PermissionFailure extends Failure {
+  const PermissionFailure(super.message);
+}
+
+class ValidationFailure extends Failure {
+  const ValidationFailure(super.message);
+}

@@ -25,6 +25,7 @@ dependencies:
   json_annotation: ^4.8.1
   logger: ^2.0.2
   path_provider: ^2.1.1
+  permission_handler: ^11.0.1
   riverpod_annotation: ^2.3.3
   tflite_flutter: ^0.11.0
 

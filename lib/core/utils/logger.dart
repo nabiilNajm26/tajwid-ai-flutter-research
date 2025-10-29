@@ -12,6 +12,7 @@ class AppLogger {
     ),
   );
 
+  // Static methods (existing)
   static void d(String message, [dynamic error, StackTrace? stackTrace]) {
     _logger.d(message, error: error, stackTrace: stackTrace);
   }
@@ -25,6 +26,23 @@ class AppLogger {
   }
 
   static void e(String message, [dynamic error, StackTrace? stackTrace]) {
+    _logger.e(message, error: error, stackTrace: stackTrace);
+  }
+
+  // Instance methods (for object-oriented usage)
+  void debug(String message, {dynamic error, StackTrace? stackTrace}) {
+    _logger.d(message, error: error, stackTrace: stackTrace);
+  }
+
+  void info(String message, {dynamic error, StackTrace? stackTrace}) {
+    _logger.i(message, error: error, stackTrace: stackTrace);
+  }
+
+  void warning(String message, {dynamic error, StackTrace? stackTrace}) {
+    _logger.w(message, error: error, stackTrace: stackTrace);
+  }
+
+  void error(String message, {dynamic error, StackTrace? stackTrace}) {
     _logger.e(message, error: error, stackTrace: stackTrace);
   }
 }
