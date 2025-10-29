@@ -190,8 +190,8 @@ This project is developed for academic research purposes. Model files and datase
 ## Contact
 
 **Researcher:** Nabiil Najm
-**Institution:** [Your University]
-**Email:** [Your Email]
+**Institution:** Universitas Islam Indonesia 
+**Email:** [Uni](nabil.najmudin@students.uii.ac.id) | [Personal](nabiil.najm266@gmail.com)
 **GitHub:** [@nabiilNajm26](https://github.com/nabiilNajm26)
 
 ## References
