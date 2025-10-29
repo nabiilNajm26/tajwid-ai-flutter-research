@@ -8,8 +8,8 @@ This mobile application implements and compares four machine learning classifier
 
 ## Research Context
 
-**Institution:** [Your University Name]
-**Department:** [Your Department]
+**Institution:** Universitas Islam Indonesia (UII)
+**Department:** Informatics Engineering
 **Research Focus:** Mobile Machine Learning for Arabic Speech Processing
 **Target Platform:** Android 5.0+ (API 21+), optimized for Snapdragon 700 series
 
