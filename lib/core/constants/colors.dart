@@ -14,6 +14,8 @@ class AppColors {
   static const Color correct = Color(0xFF4CAF50);
   static const Color incorrect = Color(0xFFF44336);
   static const Color warning = Color(0xFFFFA726);
+  static const Color success = Color(0xFF4CAF50); // Alias for correct
+  static const Color error = Color(0xFFF44336); // Alias for incorrect
 
   // Neutrals
   static const Color background = Color(0xFFFAFAFA);

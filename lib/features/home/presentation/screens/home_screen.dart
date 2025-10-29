@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../audio_recording/presentation/screens/record_screen.dart';
 
 /// Home screen - Main entry point of the application
 ///
@@ -55,10 +56,9 @@ class HomeScreen extends StatelessWidget {
                 title: 'Record Audio',
                 subtitle: 'Evaluate Tajwid pronunciation',
                 onTap: () {
-                  // TODO: Navigate to recording screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Recording feature - Coming soon'),
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RecordScreen(),
                     ),
                   );
                 },
